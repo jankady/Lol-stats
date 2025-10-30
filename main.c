@@ -1,9 +1,17 @@
 #pragma once
 #include <stdio.h>
 #include "header/stats.h"
-int main(void) {
+#include "header/utility.h"
 
-    // stars the main program
-    start_stats();
-    return 0;
+
+int main(int argc, char **argv) {
+
+    // pridate treti argument jako test
+    if (!validate_argument(argv[1]) && !validate_argument(argv[1])) {
+        // stars the main program
+        start_stats(argv[1], argv[2], "test");
+        return 0;
+
+    }
+    return 1;
 }

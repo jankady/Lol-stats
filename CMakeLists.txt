@@ -5,4 +5,6 @@ set(CMAKE_C_STANDARD 11)
 
 add_executable(Lol_stats main.c
         src/Stats.c
-        header/stats.h)
+        header/stats.h
+        src/utility.c
+        header/utility.h)
