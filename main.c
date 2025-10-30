@@ -1,6 +1,9 @@
+#pragma once
 #include <stdio.h>
-
+#include "header/stats.h"
 int main(void) {
-    printf("Hello, World!\n");
+
+    // stars the main program
+    start_stats();
     return 0;
 }
