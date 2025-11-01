@@ -3,8 +3,11 @@ project(Lol_stats C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Lol_stats main.c
-        src/Stats.c
-        header/stats.h
-        src/utility.c
-        header/utility.h)
+# Use explicit source files and add header include directory
+add_executable(Lol_stats
+    main.c
+    src/stats.c
+    src/utility.c
+)
+
+target_include_directories(Lol_stats PRIVATE ${CMAKE_SOURCE_DIR}/header)
