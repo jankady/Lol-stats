@@ -8,6 +8,8 @@ add_executable(Lol_stats
     main.c
     src/stats.c
     src/utility.c
+        src/league_player.c
+        header/league_player.h
 )
 
 target_include_directories(Lol_stats PRIVATE ${CMAKE_SOURCE_DIR}/header)
