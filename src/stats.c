@@ -23,12 +23,12 @@ int handle_player_names_file(char player_id, FILE* file_player_names)
 {
     int buffer_size = MAX_BUFFER_SIZE;
     char* buffer = malloc(MAX_BUFFER_SIZE * sizeof(char)); // nastavim max 256 znaku na jeden radek
-
     if (!buffer)
     {
-        printf("Chyba alokace pameti\n");
+        fprintf(stderr, "Chyba alokace pameti pro player_name\n");
         return 1;
     }
+    rewind(file_player_names); // reset file pointer to the beginning of the file
     while (fgets(buffer, buffer_size, file_player_names))
     {
         if (player_id == buffer[0])
@@ -48,13 +48,14 @@ int player_exist(char* buffer, FILE* file_player_names)
     {
         if ((unsigned long)i*2 >= strlen(buffer) || strlen(buffer) != 5)
         {
-            printf("Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", buffer);
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", buffer);
             return 1;
         }
         char player_id = buffer[i * 2];
         if (handle_player_names_file(player_id, file_player_names) != 0)
         {
-            printf("Hrac s ID '%c' nebyl nalezen v souboru hracu\n", player_id);
+            fprintf(stderr, "Hrac s ID '%c' nebyl nalezen v souboru hracu\n", player_id);
+
             return 1;
         }
     }
@@ -67,19 +68,19 @@ int check_word(char* buffer, const char* expected_word)
     if (strcmp(expected_word, "match") == 0) {
         if (strcmp(buffer, "match") != 0)
         {
-            printf("Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", buffer);
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", buffer);
             return 1;
         }
     }
     else if (strcmp(expected_word, "winner_team") == 0) {
         if (strcmp(buffer, "red") != 0 && strcmp(buffer, "blue") != 0)
         {
-            printf("Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", buffer);
+            fprintf(stderr,"Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", buffer);
             return 1;
         }
     }
     else {
-        printf("Chyba formatu souboru nalezeno neplatne slovo: '%s'\n", buffer);
+        fprintf(stderr,"Chyba formatu souboru nalezeno neplatne slovo: '%s'\n", buffer);
         return 1;
     }
 
@@ -104,7 +105,7 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
     char* buffer = malloc(MAX_BUFFER_SIZE * sizeof(char));
     if (!buffer)
     {
-        printf("Chyba alokace pameti\n");
+        fprintf(stderr, "Chyba alokace pameti pro stats_start\n");
         return 1;
     }
 
