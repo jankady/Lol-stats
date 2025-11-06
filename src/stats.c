@@ -61,14 +61,28 @@ int player_exist(char* buffer, FILE* file_player_names)
     return 0;
 }
 
-int check_match(char* buffer)
+int check_word(char* buffer, const char* expected_word)
 {
     remove_tailing(buffer);
-    if (strcmp(buffer, "match") != 0)
-    {
-        printf("Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", buffer);
+    if (strcmp(expected_word, "match") == 0) {
+        if (strcmp(buffer, "match") != 0)
+        {
+            printf("Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", buffer);
+            return 1;
+        }
+    }
+    else if (strcmp(expected_word, "winner_team") == 0) {
+        if (strcmp(buffer, "red") != 0 && strcmp(buffer, "blue") != 0)
+        {
+            printf("Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", buffer);
+            return 1;
+        }
+    }
+    else {
+        printf("Chyba formatu souboru nalezeno neplatne slovo: '%s'\n", buffer);
         return 1;
     }
+
     return 0;
 }
 
@@ -94,8 +108,9 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
         return 1;
     }
 
+    // read first line from match file and check if it is "match"
     fgets(buffer, buffer_size, file_match);
-    if (check_match(buffer) != 0)
+    if (check_word(buffer, "match") != 0)
     {
         free(buffer);
         close_file(file_match);
@@ -103,6 +118,7 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
         return 1;
     }
 
+    // read second line from match file and check if read team players exist
     fgets(buffer, buffer_size, file_match);
     if (player_exist(buffer, file_player_names) != 0)
     {
@@ -112,6 +128,33 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
         return 1;
     }
 
+    // read third line from match file and check red team statistics
+    fgets(buffer, buffer_size, file_match);
+    // TO DO: implement red team statistics check
+
+    // read fouth line from match file and check if blue team players exist
+    fgets(buffer, buffer_size, file_match);
+    if (player_exist(buffer, file_player_names) != 0)
+    {
+        free(buffer);
+        close_file(file_match);
+        close_file(file_player_names);
+        return 1;
+    }
+
+    // read third line from match file and check blue team statistics
+    fgets(buffer, buffer_size, file_match);
+    // TO DO: implement blue team statistics check
+
+    // read sixth line from match file and winner team
+    fgets(buffer, buffer_size, file_match);
+    if (check_word(buffer, "winner_team") != 0)
+    {
+        free(buffer);
+        close_file(file_match);
+        close_file(file_player_names);
+        return 1;
+    }
 
 
 
