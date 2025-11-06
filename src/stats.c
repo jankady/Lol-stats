@@ -1,10 +1,12 @@
 #include <stdio.h>
-#include "../header/stats.h"
 #include <stdlib.h>
 #include <string.h>
 
+#include "../header/stats.h"
+#include "../header/league_player.h"
 #include "../header/utility.h"
 
+#define MAX_PLAYERS_NUM 20
 #define MAX_BUFFER_SIZE 256
 
 void remove_tailing(char* line)
@@ -21,7 +23,6 @@ int handle_output_file(char* file_output_path)
 
 int handle_player_names_file(char player_id, FILE* file_player_names)
 {
-    int buffer_size = MAX_BUFFER_SIZE;
     char* buffer = malloc(MAX_BUFFER_SIZE * sizeof(char)); // nastavim max 256 znaku na jeden radek
     if (!buffer)
     {
@@ -29,7 +30,7 @@ int handle_player_names_file(char player_id, FILE* file_player_names)
         return 1;
     }
     rewind(file_player_names); // reset file pointer to the beginning of the file
-    while (fgets(buffer, buffer_size, file_player_names))
+    while (fgets(buffer, MAX_BUFFER_SIZE, file_player_names))
     {
         if (player_id == buffer[0])
         {
@@ -87,7 +88,7 @@ int check_word(char* buffer, const char* expected_word)
     return 0;
 }
 
-int start_stats(char* file_match_path, char* file_player_names_path, char* file_output_path)
+int start_stats(const char* file_match_path, const char* file_player_names_path, char* file_output_path)
 {
     FILE* file_match = read_file(file_match_path);
     FILE* file_player_names = read_file(file_player_names_path);
@@ -108,12 +109,27 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
         fprintf(stderr, "Chyba alokace pameti pro stats_start\n");
         return 1;
     }
+    league_players_array_t* league_players = init_league_players(file_player_names, MAX_PLAYERS_NUM);
+    if (league_players == NULL)
+    {
+        free(buffer);
+        close_file(file_match);
+        close_file(file_player_names);
+        return 1;
+    }
+    printf("total player count: %d\n", league_players->count);
+    for (int i = 0; i < league_players->count; i++)
+    {
+        printf("Hrac ID: %d, Jmeno: %s\n", league_players->players[i].player_id, league_players->players[i].player_name);
+    }
 
     // read first line from match file and check if it is "match"
     fgets(buffer, buffer_size, file_match);
     if (check_word(buffer, "match") != 0)
     {
         free(buffer);
+        free(league_players->players);
+        free(league_players);
         close_file(file_match);
         close_file(file_player_names);
         return 1;
@@ -124,6 +140,8 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
     if (player_exist(buffer, file_player_names) != 0)
     {
         free(buffer);
+        free(league_players->players);
+        free(league_players);
         close_file(file_match);
         close_file(file_player_names);
         return 1;
@@ -138,6 +156,8 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
     if (player_exist(buffer, file_player_names) != 0)
     {
         free(buffer);
+        free(league_players->players);
+        free(league_players);
         close_file(file_match);
         close_file(file_player_names);
         return 1;
@@ -152,15 +172,17 @@ int start_stats(char* file_match_path, char* file_player_names_path, char* file_
     if (check_word(buffer, "winner_team") != 0)
     {
         free(buffer);
+        free(league_players->players);
+        free(league_players);
         close_file(file_match);
         close_file(file_player_names);
         return 1;
     }
 
-
-
     handle_output_file(file_output_path);
     free(buffer);
+    free(league_players->players);
+    free(league_players);
     close_file(file_match);
     close_file(file_player_names);
     return 0;

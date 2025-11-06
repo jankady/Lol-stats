@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 
 typedef struct LeaguePlayer {
     int player_id;
@@ -14,3 +15,11 @@ typedef struct LeaguePlayer {
     int games_played;
     float elo;
 } league_player_t;
+
+typedef struct {
+    league_player_t* players;
+    int count;
+    int capacity;
+} league_players_array_t;
+
+league_players_array_t* init_league_players(FILE* file_player_names, int max_players);
