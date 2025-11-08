@@ -19,21 +19,10 @@ int handle_output_file(char *file_output_path) {
     return 0;
 }
 
-int handle_player_names_file(int player_id, const league_players_array_t *players_array) {
-
-    for (int i = 0; i < players_array->count; i++) {
-        if (players_array->players[i].player_id == player_id) {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-int player_exist(char *buffer, league_players_array_t *players_array) {
+int player_exist(char *buffer, league_players_array_t *players_array, char* team_color, int* playing_ids) {
     remove_tailing(buffer);
     for (int i = 0; i < 3; i++) {
-        if ((unsigned long) i * 2 >= strlen(buffer) || strlen(buffer) != 5) {
+        if ((unsigned long) i * 2 >= strlen(buffer)) {
             fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", buffer);
             return 1;
         }
@@ -44,7 +33,14 @@ int player_exist(char *buffer, league_players_array_t *players_array) {
             return 1;
         }
 
-
+        for (int j = 0; j < 6; j++) {
+            if (playing_ids[j] == player_id) {
+                fprintf(stderr, "Hrac s ID '%d' je uveden vicekrat v jednom zapase\n", player_id);
+                return 1;
+            }
+        }
+        set_games_played(players_array, player_id, get_games_played(players_array, player_id) + 1);
+        set_played_as_red(players_array, player_id, get_played_as_red(players_array, player_id) + 1);
     }
     return 0;
 }
@@ -80,7 +76,6 @@ int start_stats(const char *file_match_path, const char *file_player_names_path,
         return 1;
     }
     clear_file(file_output_path);
-    printf("zacinam\n");
     int buffer_size = MAX_BUFFER_SIZE;
     char *buffer = malloc(MAX_BUFFER_SIZE * sizeof(char));
     if (!buffer) {
@@ -94,6 +89,8 @@ int start_stats(const char *file_match_path, const char *file_player_names_path,
         close_file(file_player_names);
         return 1;
     }
+    int playing_ids[6] = {-1};
+    printf("zacinam\n");
 
     // read first line from match file and check if it is "match"
     fgets(buffer, buffer_size, file_match);
@@ -106,9 +103,9 @@ int start_stats(const char *file_match_path, const char *file_player_names_path,
         return 1;
     }
 
-    // read second line from match file and check if read team players exist
+    // read second line from match file and check if red team players exist
     fgets(buffer, buffer_size, file_match);
-    if (player_exist(buffer, league_players) != 0) {
+    if (player_exist(buffer, league_players, "red", playing_ids) != 0) {
         free(buffer);
         free(league_players->players);
         free(league_players);
@@ -123,7 +120,7 @@ int start_stats(const char *file_match_path, const char *file_player_names_path,
 
     // read fourth line from match file and check if blue team players exist
     fgets(buffer, buffer_size, file_match);
-    if (player_exist(buffer, league_players) != 0) {
+    if (player_exist(buffer, league_players, "blue", playing_ids) != 0) {
         free(buffer);
         free(league_players->players);
         free(league_players);
