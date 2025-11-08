@@ -55,7 +55,7 @@ int player_exist(char* buffer, league_players_array_t* players_array, char* team
                 return 1;
             }
         }
-        if (strcmp(team_color, "read") == 0)
+        if (strcmp(team_color, "red") == 0)
         {
             playing_ids[i] = player_id;
             set_played_as_red(players_array, player_id, get_played_as_red(players_array, player_id) + 1);
@@ -68,10 +68,14 @@ int player_exist(char* buffer, league_players_array_t* players_array, char* team
         set_games_played(players_array, player_id, get_games_played(players_array, player_id) + 1);
 
         char* temp_token = strtok(NULL, ",");
-        if (i == 2 && temp_token != NULL)
+        if (i == 2)
         {
+            if (temp_token != NULL)
+            {
             fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", buffer);
             return 1;
+            }
+            return 0;
         }
         if (temp_token == NULL)
         {
