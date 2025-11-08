@@ -23,7 +23,7 @@ league_player_t *create_league_player(int player_id, const char *player_name) {
     player->wins_as_blue = 0;
     player->wins_as_red = 0;
     player->games_played = 0;
-    player->elo = 1000.0f; // Initial ELO rating
+    player->elo = 1000.0f; // Initial ELO rating is 1000
     return player;
 }
 

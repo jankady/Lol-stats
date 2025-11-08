@@ -2,18 +2,18 @@
 #include <stdio.h>
 
 typedef struct LeaguePlayer {
-    int player_id;
-    char player_name[50];
-    int kills;
-    int assists;
-    int deaths;
-    int played_as_blue;
-    int played_as_red;
-    int total_wins;
-    int wins_as_blue;
-    int wins_as_red;
-    int games_played;
-    float elo;
+    int player_id; // unique player ID
+    char player_name[50]; // player name
+    int kills; // total kills
+    int assists; // total assists
+    int deaths; // total deaths
+    int played_as_blue; // games played as blue
+    int played_as_red; // games played as red
+    int total_wins; // total wins
+    int wins_as_blue; // wins when played as blue
+    int wins_as_red; // wins when played as blue
+    int games_played; // total games played
+    float elo; // Elo rating
 } league_player_t;
 
 typedef struct {
