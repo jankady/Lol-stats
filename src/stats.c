@@ -38,11 +38,13 @@ int player_exist(char *buffer, league_players_array_t *players_array) {
             return 1;
         }
         int player_id = buffer[i * 2] - '0'; // convert char to int i subsctract asci values
-        if (handle_player_names_file(player_id, players_array) != 0) {
+        if (id_exists(players_array, player_id) != 0) {
             fprintf(stderr, "Hrac s ID '%c' nebyl nalezen v souboru hracu\n", player_id);
 
             return 1;
         }
+
+
     }
     return 0;
 }

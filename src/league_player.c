@@ -62,48 +62,48 @@ league_players_array_t* init_league_players(FILE* file_player_names, const int m
     return league_players;
 }
 
-int find_player_index(league_players_array_t* league_players, const char* player_name) {
-    for (int i = 0; i < league_players->count; i++) {
-        if (strcmp(league_players->players[i].player_name, player_name) == 0) {
-            return i;
+int id_exists(league_players_array_t* players_array, int player_id) {
+    for (int i = 0; i < players_array->count; i++) {
+        if (players_array->players[i].player_id == player_id) {
+            return 0;
         }
     }
-    return -1; // Player not found
+    return 1;
 }
 
 
-void set_kills(league_players_array_t players_array, int player_id, int kills) {
+void set_kills(league_players_array_t* players_array, int player_id, int kills) {
 
-    for (int i = 0; i < players_array.count; i++) {
-        if (players_array.players[i].player_id == player_id) {
-            players_array.players[i].kills = kills;
+    for (int i = 0; i < players_array->count; i++) {
+        if (players_array->players[i].player_id == player_id) {
+            players_array->players[i].kills = kills;
             return;
         }
     }
 }
-int get_kills(league_players_array_t players_array, int player_id) {
+int get_kills(league_players_array_t* players_array, int player_id) {
 
-    for (int i = 0; i < players_array.count; i++) {
-        if (players_array.players[i].player_id == player_id) {
-            return players_array.players[i].kills;
+    for (int i = 0; i < players_array->count; i++) {
+        if (players_array->players[i].player_id == player_id) {
+            return players_array->players[i].kills;
         }
     }
     return -1;
 }
 
 
-void set_assists(league_players_array_t players_array, int player_id, int assists);
+void set_assists(league_players_array_t* players_array, int player_id, int assists);
 
-void set_deaths(league_players_array_t players_array, int player_id, int deaths);
+void set_deaths(league_players_array_t* players_array, int player_id, int deaths);
 
-void set_played_as_blue(league_players_array_t players_array, int player_id, int played_as_blue);
+void set_played_as_blue(league_players_array_t* players_array, int player_id, int played_as_blue);
 
-void set_played_as_red(league_players_array_t players_array, int player_id, int played_as_red);
+void set_played_as_red(league_players_array_t* players_array, int player_id, int played_as_red);
 
-void set_total_wins(league_players_array_t players_array, int player_id, int total_wins);
+void set_total_wins(league_players_array_t* players_array, int player_id, int total_wins);
 
-void set_wins_as_blue(league_players_array_t players_array, int player_id, int wins_as_blue);
+void set_wins_as_blue(league_players_array_t* players_array, int player_id, int wins_as_blue);
 
-void set_wins_as_red(league_players_array_t players_array, int player_id, int wins_as_red);
+void set_wins_as_red(league_players_array_t* players_array, int player_id, int wins_as_red);
 
-void set_games_played(league_players_array_t players_array, int player_id, int games_played);
+void set_games_played(league_players_array_t* players_array, int player_id, int games_played);
