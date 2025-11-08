@@ -3,7 +3,7 @@
 
 void remove_tailing(char* line);
 
-int handle_output_file(char* file_output_path);
+int handle_output_file(league_players_array_t* league_players);
 
 int handle_player_names_file(int player_id, const league_players_array_t* players_array);
 
