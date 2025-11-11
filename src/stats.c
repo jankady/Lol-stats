@@ -9,6 +9,15 @@
 #define MAX_PLAYERS_NUM 20
 #define MAX_BUFFER_SIZE 256
 
+void end_program(int end_num, char* buffer, league_players_array_t* league_players, FILE* file_match, FILE* file_player_names)
+{
+    free(buffer);
+    clear_league_players(league_players);
+    close_file(file_match);
+    close_file(file_player_names);
+    exit(end_num);
+}
+
 void remove_tailing(char* line)
 {
     if (!line) return;
@@ -107,6 +116,7 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
                 set_total_wins(league_players,playing_ids[i], get_total_wins(league_players,playing_ids[i]) + 1);
                 set_wins_as_red(league_players,playing_ids[i], get_wins_as_red(league_players ,playing_ids[i]) + 1);
             }
+                return 0;
         }
         else if (strcmp(buffer, "blue") == 0)
         {
@@ -115,6 +125,7 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
                 set_total_wins(league_players,playing_ids[i], get_total_wins(league_players,playing_ids[i]) + 1);
                 set_wins_as_blue(league_players,playing_ids[i], get_wins_as_blue(league_players ,playing_ids[i]) + 1);
             }
+            return 0;
         }
         else
         {
@@ -131,6 +142,47 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
     return 0;
 }
 
+void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file_player_names, league_players_array_t* league_players, int* playing_ids)
+{
+    // read first line from match file and check if it is "match"
+    fgets(buffer, buffer_size, file_match);
+    if (check_word(buffer, league_players, "match", playing_ids) != 0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
+
+    // read second line from match file and check if red team players exist
+    fgets(buffer, buffer_size, file_match);
+    if (player_exist(buffer, league_players, "red", playing_ids) != 0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
+
+    // read third line from match file and check red team statistics
+    fgets(buffer, buffer_size, file_match);
+    // TO DO: implement red team statistics check
+
+    // read fourth line from match file and check if blue team players exist
+    fgets(buffer, buffer_size, file_match);
+    if (player_exist(buffer, league_players, "blue", playing_ids) != 0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
+
+    // read third line from match file and check blue team statistics
+    fgets(buffer, buffer_size, file_match);
+    // TO DO: implement blue team statistics check
+
+    // read sixth line from match file and winner team
+    fgets(buffer, buffer_size, file_match);
+    if (check_word(buffer, league_players, "winner_team", playing_ids) != 0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
+
+    handle_output_file(league_players);
+
+}
 
 
 int start_stats(const char* file_match_path, const char* file_player_names_path, char* file_output_path)
@@ -164,67 +216,9 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
     int playing_ids[6] = {-1};
     printf("zacinam\n");
 
-    // read first line from match file and check if it is "match"
-    fgets(buffer, buffer_size, file_match);
-    if (check_word(buffer, league_players, "match", playing_ids) != 0)
-    {
-        free(buffer);
-        free(league_players->players);
-        free(league_players);
-        close_file(file_match);
-        close_file(file_player_names);
-        return 1;
-    }
+    start_main_loop(buffer, buffer_size, file_match, file_player_names, league_players, playing_ids);
 
-    // read second line from match file and check if red team players exist
-    fgets(buffer, buffer_size, file_match);
-    if (player_exist(buffer, league_players, "red", playing_ids) != 0)
-    {
-        free(buffer);
-        free(league_players->players);
-        free(league_players);
-        close_file(file_match);
-        close_file(file_player_names);
-        return 1;
-    }
-
-    // read third line from match file and check red team statistics
-    fgets(buffer, buffer_size, file_match);
-    // TO DO: implement red team statistics check
-
-    // read fourth line from match file and check if blue team players exist
-    fgets(buffer, buffer_size, file_match);
-    if (player_exist(buffer, league_players, "blue", playing_ids) != 0)
-    {
-        free(buffer);
-        free(league_players->players);
-        free(league_players);
-        close_file(file_match);
-        close_file(file_player_names);
-        return 1;
-    }
-
-    // read third line from match file and check blue team statistics
-    fgets(buffer, buffer_size, file_match);
-    // TO DO: implement blue team statistics check
-
-    // read sixth line from match file and winner team
-    fgets(buffer, buffer_size, file_match);
-    if (check_word(buffer, league_players, "winner_team", playing_ids) != 0)
-    {
-        free(buffer);
-        free(league_players->players);
-        free(league_players);
-        close_file(file_match);
-        close_file(file_player_names);
-        return 1;
-    }
-
-    handle_output_file(league_players);
+    end_program(0, buffer, league_players, file_match, file_player_names);
     free(buffer);
-    free(league_players->players);
-    free(league_players);
-    close_file(file_match);
-    close_file(file_player_names);
     return 0;
 }

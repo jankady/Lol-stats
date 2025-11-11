@@ -26,6 +26,8 @@ league_players_array_t* init_league_players(FILE* file_player_names, int max_pla
 
 league_player_t* create_league_player(int player_id, const char* player_name);
 
+void clear_league_players(league_players_array_t* players_array);
+
 int id_exists(league_players_array_t* players_array, int player_id);
 
 void set_kills(league_players_array_t* players_array, int player_id, int kills);

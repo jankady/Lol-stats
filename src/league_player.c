@@ -69,6 +69,15 @@ league_players_array_t* init_league_players(FILE* file_player_names, const int m
     return league_players;
 }
 
+void clear_league_players(league_players_array_t* players_array)
+{
+    free(players_array->players);
+    players_array->players = NULL;
+    players_array->count = 0;
+    free(players_array);
+    players_array = NULL;
+}
+
 int id_exists(league_players_array_t* players_array, int player_id)
 {
     for (int i = 0; i < players_array->count; i++)
