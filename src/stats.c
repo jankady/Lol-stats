@@ -9,7 +9,8 @@
 #define MAX_PLAYERS_NUM 20
 #define MAX_BUFFER_SIZE 256
 
-void end_program(int end_num, char* buffer, league_players_array_t* league_players, FILE* file_match, FILE* file_player_names)
+void end_program(int end_num, char* buffer, league_players_array_t* league_players,
+    FILE* file_match, FILE* file_player_names)
 {
     free(buffer);
     buffer = NULL;
@@ -25,12 +26,19 @@ void remove_tailing(char* line)
     line[strcspn(line, "\r\n")] = '\0'; // odstrani \n a \r z konce retezce
 }
 
-int handle_output_file(league_players_array_t* league_players)
+int handle_output_file(league_players_array_t* league_players, char* output_file)
 {
+    int buffer_size = MAX_BUFFER_SIZE * sizeof(char);
+    char* buffer = malloc(buffer_size +1);
+    if (!buffer) {
+        fprintf(stderr, "Chyba alokace pameti pro handle_output_file\n");
+        return 1;
+    }
     for (int i = 0; i < league_players->count; i++)
     {
-        printf(
-            "ID: %d, Name: %s, Games Played: %d, Kills: %d, Assists: %d, Deaths: %d, Played as Red: %d, Played as Blue: %d, Total Wins: %d, Wins as Red: %d, Wins as Blue: %d\n",
+        int text = snprintf(buffer, buffer_size,
+            "ID: %d, Name: %s, Games Played: %d, Kills: %d, Assists: %d, Deaths: %d,"
+            " Played as Red: %d, Played as Blue: %d, Total Wins: %d, Wins as Red: %d, Wins as Blue: %d\n",
             league_players->players[i].player_id,
             league_players->players[i].player_name,
             league_players->players[i].games_played,
@@ -42,7 +50,14 @@ int handle_output_file(league_players_array_t* league_players)
             league_players->players[i].total_wins,
             league_players->players[i].wins_as_red,
             league_players->players[i].wins_as_blue);
+        if (text < 0 || text >= buffer_size) {
+            fprintf(stderr, "Formatting error when writing player %d\n", league_players->players[i].player_id);
+            continue;
+        }
+        write_file(output_file, buffer);
+
     }
+    free(buffer);
     return 0;
 }
 
@@ -214,7 +229,8 @@ int player_KDA(char* buffer, league_players_array_t* league_players, char* team_
     return 0;
 }
 
-void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file_player_names, league_players_array_t* league_players, int* playing_ids)
+void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file_player_names,
+    league_players_array_t* league_players, int* playing_ids, char* output_file)
 {
     while (fgets(buffer, buffer_size, file_match) != NULL) {
         // read first line from match file and check if it is "match"
@@ -265,11 +281,13 @@ void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file
         }
     }
 
+    if (handle_output_file(league_players, output_file) !=0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
 
-    handle_output_file(league_players);
 
 }
-
 
 int start_stats(const char* file_match_path, const char* file_player_names_path, char* file_output_path)
 {
@@ -277,15 +295,24 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
     FILE* file_player_names = read_file(file_player_names_path);
     if (file_match == NULL || file_player_names == NULL)
     {
+        fprintf(stderr, "Chyba otevreni jednoho ze souboru\n");
         if (file_match)
             close_file(file_match);
         if (file_player_names)
             close_file(file_player_names);
+
         return 1;
     }
-    clear_file(file_output_path);
+    if (clear_file(file_output_path) != 0)
+    {
+        fprintf(stderr, "Chyba vynulovani vystupniho souboru\n");
+        close_file(file_match);
+        close_file(file_player_names);
+        return 1;
+    }
+
     int buffer_size = MAX_BUFFER_SIZE;
-    char* buffer = malloc(MAX_BUFFER_SIZE * sizeof(char));
+    char* buffer = malloc(buffer_size * sizeof(char) +1);
     if (!buffer)
     {
         fprintf(stderr, "Chyba alokace pameti pro stats_start\n");
@@ -302,7 +329,7 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
     int playing_ids[6] = {-1};
     printf("zacinam\n");
 
-    start_main_loop(buffer, buffer_size, file_match, file_player_names, league_players, playing_ids);
+    start_main_loop(buffer, buffer_size, file_match, file_player_names, league_players, playing_ids, file_output_path);
 
     end_program(0, buffer, league_players, file_match, file_player_names);
     free(buffer);
