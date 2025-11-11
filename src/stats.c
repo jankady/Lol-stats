@@ -67,7 +67,7 @@ int player_exist(char* buffer, league_players_array_t* players_array, char* team
         }
         set_games_played(players_array, player_id, get_games_played(players_array, player_id) + 1);
 
-        char* temp_token = strtok(NULL, ",");
+        char* temp_token = strtok(NULL, ","); // check format
         if (i == 2)
         {
             if (temp_token != NULL)
@@ -87,7 +87,7 @@ int player_exist(char* buffer, league_players_array_t* players_array, char* team
     return 0;
 }
 
-int check_word(char* buffer, const char* expected_word)
+int check_word(char* buffer,league_players_array_t* league_players, const char* expected_word, int *playing_ids)
 {
     remove_tailing(buffer);
     if (strcmp(expected_word, "match") == 0)
@@ -100,7 +100,23 @@ int check_word(char* buffer, const char* expected_word)
     }
     else if (strcmp(expected_word, "winner_team") == 0)
     {
-        if (strcmp(buffer, "red") != 0 && strcmp(buffer, "blue") != 0)
+        if (strcmp(buffer, "red") == 0)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                set_total_wins(league_players,playing_ids[i], get_total_wins(league_players,playing_ids[i]) + 1);
+                set_wins_as_red(league_players,playing_ids[i], get_wins_as_red(league_players ,playing_ids[i]) + 1);
+            }
+        }
+        else if (strcmp(buffer, "blue") == 0)
+        {
+            for (int i = 3; i < 6; i++)
+            {
+                set_total_wins(league_players,playing_ids[i], get_total_wins(league_players,playing_ids[i]) + 1);
+                set_wins_as_blue(league_players,playing_ids[i], get_wins_as_blue(league_players ,playing_ids[i]) + 1);
+            }
+        }
+        else
         {
             fprintf(stderr, "Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", buffer);
             return 1;
@@ -114,6 +130,8 @@ int check_word(char* buffer, const char* expected_word)
 
     return 0;
 }
+
+
 
 int start_stats(const char* file_match_path, const char* file_player_names_path, char* file_output_path)
 {
@@ -148,7 +166,7 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
 
     // read first line from match file and check if it is "match"
     fgets(buffer, buffer_size, file_match);
-    if (check_word(buffer, "match") != 0)
+    if (check_word(buffer, league_players, "match", playing_ids) != 0)
     {
         free(buffer);
         free(league_players->players);
@@ -192,7 +210,7 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
 
     // read sixth line from match file and winner team
     fgets(buffer, buffer_size, file_match);
-    if (check_word(buffer, "winner_team") != 0)
+    if (check_word(buffer, league_players, "winner_team", playing_ids) != 0)
     {
         free(buffer);
         free(league_players->players);
