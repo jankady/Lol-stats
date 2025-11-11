@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
     // check number of arguments
     if (argc != 4)
     {
-        printf("spatny pocet argumentu");
+        print_error(0,"",0);
         return 1;
     }
     // pridate treti argument jako test

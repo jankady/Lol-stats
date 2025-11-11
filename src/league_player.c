@@ -10,7 +10,7 @@ league_player_t* create_league_player(int player_id, const char* player_name)
     league_player_t* player = malloc(sizeof(league_player_t));
     if (!player)
     {
-        fprintf(stderr, "Chyba alokace pameti pro league_player_t\n");
+        print_error(1, "league_player_t", 0);
         return NULL;
     }
     player->player_id = player_id;
@@ -34,14 +34,14 @@ league_players_array_t* init_league_players(FILE* file_player_names, const int m
     league_player_t* players_arr = malloc(max_players * sizeof(league_player_t));
     if (!players_arr)
     {
-        fprintf(stderr, "Chyba alokace pameti pro init_league_players\n");
+        print_error(1, "init_league_players", 0);
         return NULL;
     }
     char* buffer = malloc(MAX_BUFFER_SIZE * sizeof(char));
     if (!buffer)
     {
         free(players_arr);
-        fprintf(stderr, "Chyba alokace pameti pro init_league_players buffer\n");
+        print_error(1, "init_league_players buffer", 0);
         return NULL;
     }
     int player_count = 0;

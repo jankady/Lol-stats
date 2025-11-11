@@ -9,42 +9,6 @@
 #define MAX_PLAYERS_NUM 20
 #define MAX_BUFFER_SIZE 256
 
-void print_error(int error_code, const char* message, int number_as_message) {
-    switch (error_code){
-        case 1: // Error for memory allocation
-            fprintf(stderr, "Chyba alokace pameti pro %s\n", message);
-            break;
-        case 2: // Error Match for file format in check_word
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", message);
-            break;
-        case 3: // Error Player ID not found in player file in player_exist
-            fprintf(stderr, "Hrac s ID '%d' nebyl nalezen v souboru hracu\n", number_as_message);
-            break;
-        case 4: // Error Player ID duplicated in one match in player_exist
-            fprintf(stderr, "Hrac s ID '%d' je uveden vicekrat v jednom zapase\n", number_as_message);
-            break;
-        case 5: // Error format for player IDs in player_exist
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", message);
-            break;
-        case 6: // Error KDA format in player_KDA
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", message);
-            break;
-        case 7: // Error Negative Kills in player_KDA
-            fprintf(stderr, "Chyba formatu souboru: statistiky hrace nemohou byt zaporne, nalezeno '%s'\n", message);
-            break;
-        case 9: // Error for invalid word in check_word
-            fprintf(stderr, "Chyba formatu souboru nalezeno neplatne slovo: '%s'\n", message);
-            break;
-        case 10: // Error when winner team is not red or blue in check_word
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", message);
-            break;
-        case 11: // Error formatting when writing player in handle_output_file
-            fprintf(stderr, "Formatting error when writing player %d\n", number_as_message);
-            break;
-        default:
-            fprintf(stderr, "Neznamy error\n");
-    }
-}
 
 void end_program(int end_num, char* buffer, league_players_array_t* league_players,
     FILE* file_match, FILE* file_player_names)
@@ -354,10 +318,7 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
         return 1;
     }
     int playing_ids[6] = {-1};
-    printf("zacinam\n");
-
     start_main_loop(buffer, buffer_size, file_match, file_player_names, league_players, playing_ids, file_output_path);
-
     end_program(0, buffer, league_players, file_match, file_player_names);
     free(buffer);
     return 0;
