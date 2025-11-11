@@ -54,7 +54,7 @@ int player_exist(char* buffer, league_players_array_t* players_array, char* team
     {
         if (id_exists(players_array, player_id) != 0)
         {
-            fprintf(stderr, "Hrac s ID '%c' nebyl nalezen v souboru hracu\n", player_id);
+            fprintf(stderr, "Hrac s ID '%d' nebyl nalezen v souboru hracu\n", player_id);
             return 1;
         }
         for (int j = 0; j < 6; j++)
@@ -146,12 +146,11 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
 int player_KDA(char* buffer, league_players_array_t* league_players, char* team_color, int* playing_ids)
 {
     remove_tailing(buffer);
-    // i need to use strtok because i am doing a nested searching for kills, assists and deaths
-    char* one_player_stats_ptr = NULL;
+    // i need to use strtok_r because i am doing a nested searching for kills, assists and deaths
+    char* one_player_pointer = NULL ; // uset to store the rest of the buffer after the first strtok_r
+    char* one_player_stats = strtok_r(buffer, ",", &one_player_pointer);
     for (int i = 0; i < 3; i++)
     {
-        char* one_player_stats = strtol(buffer, ",", strlen(buffer));
-
         if (one_player_stats == NULL)
         {
             fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
@@ -196,7 +195,7 @@ int player_KDA(char* buffer, league_players_array_t* league_players, char* team_
             set_deaths(league_players, playing_ids[i+3], get_deaths(league_players, playing_ids[i+3]) + deaths);
         }
 
-        one_player_stats = strtok(NULL, ","); // check format
+        one_player_stats = strtok_r(NULL, ",", &one_player_pointer); // check format
         if (i == 2)
         {
             if (one_player_stats != NULL)
@@ -217,48 +216,55 @@ int player_KDA(char* buffer, league_players_array_t* league_players, char* team_
 
 void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file_player_names, league_players_array_t* league_players, int* playing_ids)
 {
+    while (fgets(buffer, buffer_size, file_match) != NULL) {
+        // read first line from match file and check if it is "match"
+        if (check_word(buffer, league_players, "match", playing_ids) != 0)
+        {
+            end_program(1, buffer, league_players, file_match, file_player_names);
+        }
 
-    // read first line from match file and check if it is "match"
-    fgets(buffer, buffer_size, file_match);
-    if (check_word(buffer, league_players, "match", playing_ids) != 0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
+        // read second line from match file and check if red team players exist
+        fgets(buffer, buffer_size, file_match);
+        if (player_exist(buffer, league_players, "red", playing_ids) != 0)
+        {
+            end_program(1, buffer, league_players, file_match, file_player_names);
+        }
+
+        // read third line from match file and check red team statistics
+        fgets(buffer, buffer_size, file_match);
+        if (player_KDA(buffer, league_players, "red", playing_ids) != 0)
+        {
+            end_program(1, buffer, league_players, file_match, file_player_names);
+        }
+
+        // read fourth line from match file and check if blue team players exist
+        fgets(buffer, buffer_size, file_match);
+        if (player_exist(buffer, league_players, "blue", playing_ids) != 0)
+        {
+            end_program(1, buffer, league_players, file_match, file_player_names);
+        }
+
+        // read third line from match file and check blue team statistics
+        fgets(buffer, buffer_size, file_match);
+        if (player_KDA(buffer, league_players, "blue", playing_ids) != 0)
+        {
+            end_program(1, buffer, league_players, file_match, file_player_names);
+        }
+
+        // read sixth line from match file and winner team
+        fgets(buffer, buffer_size, file_match);
+        if (check_word(buffer, league_players, "winner_team", playing_ids) != 0)
+        {
+            end_program(1, buffer, league_players, file_match, file_player_names);
+        }
+
+        // reset players after each match
+        for (int i = 0; i < 6; i++)
+        {
+            playing_ids[i] = -1;
+        }
     }
 
-    // read second line from match file and check if red team players exist
-    fgets(buffer, buffer_size, file_match);
-    if (player_exist(buffer, league_players, "red", playing_ids) != 0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
-    }
-
-    // read third line from match file and check red team statistics
-    fgets(buffer, buffer_size, file_match);
-    if (player_KDA(buffer, league_players, "red", playing_ids) != 0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
-    }
-
-    // read fourth line from match file and check if blue team players exist
-    fgets(buffer, buffer_size, file_match);
-    if (player_exist(buffer, league_players, "blue", playing_ids) != 0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
-    }
-
-    // read third line from match file and check blue team statistics
-    fgets(buffer, buffer_size, file_match);
-    if (player_KDA(buffer, league_players, "blue", playing_ids) != 0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
-    }
-
-    // read sixth line from match file and winner team
-    fgets(buffer, buffer_size, file_match);
-    if (check_word(buffer, league_players, "winner_team", playing_ids) != 0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
-    }
 
     handle_output_file(league_players);
 
