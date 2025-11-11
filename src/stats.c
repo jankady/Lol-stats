@@ -9,6 +9,43 @@
 #define MAX_PLAYERS_NUM 20
 #define MAX_BUFFER_SIZE 256
 
+void print_error(int error_code, const char* message, int number_as_message) {
+    switch (error_code){
+        case 1: // Error for memory allocation
+            fprintf(stderr, "Chyba alokace pameti pro %s\n", message);
+            break;
+        case 2: // Error Match for file format in check_word
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", message);
+            break;
+        case 3: // Error Player ID not found in player file in player_exist
+            fprintf(stderr, "Hrac s ID '%d' nebyl nalezen v souboru hracu\n", number_as_message);
+            break;
+        case 4: // Error Player ID duplicated in one match in player_exist
+            fprintf(stderr, "Hrac s ID '%d' je uveden vicekrat v jednom zapase\n", number_as_message);
+            break;
+        case 5: // Error format for player IDs in player_exist
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", message);
+            break;
+        case 6: // Error KDA format in player_KDA
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", message);
+            break;
+        case 7: // Error Negative Kills in player_KDA
+            fprintf(stderr, "Chyba formatu souboru: statistiky hrace nemohou byt zaporne, nalezeno '%s'\n", message);
+            break;
+        case 9: // Error for invalid word in check_word
+            fprintf(stderr, "Chyba formatu souboru nalezeno neplatne slovo: '%s'\n", message);
+            break;
+        case 10: // Error when winner team is not red or blue in check_word
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", message);
+            break;
+        case 11: // Error formatting when writing player in handle_output_file
+            fprintf(stderr, "Formatting error when writing player %d\n", number_as_message);
+            break;
+        default:
+            fprintf(stderr, "Neznamy error\n");
+    }
+}
+
 void end_program(int end_num, char* buffer, league_players_array_t* league_players,
     FILE* file_match, FILE* file_player_names)
 {
@@ -31,7 +68,7 @@ int handle_output_file(league_players_array_t* league_players, char* output_file
     int buffer_size = MAX_BUFFER_SIZE * sizeof(char);
     char* buffer = malloc(buffer_size +1);
     if (!buffer) {
-        fprintf(stderr, "Chyba alokace pameti pro handle_output_file\n");
+        print_error(1, "handle_output_file",0);
         return 1;
     }
     for (int i = 0; i < league_players->count; i++)
@@ -51,11 +88,10 @@ int handle_output_file(league_players_array_t* league_players, char* output_file
             league_players->players[i].wins_as_red,
             league_players->players[i].wins_as_blue);
         if (text < 0 || text >= buffer_size) {
-            fprintf(stderr, "Formatting error when writing player %d\n", league_players->players[i].player_id);
-            continue;
+            print_error(11, "",league_players->players[i].player_id);
+            return 1;
         }
         write_file(output_file, buffer);
-
     }
     free(buffer);
     return 0;
@@ -64,19 +100,24 @@ int handle_output_file(league_players_array_t* league_players, char* output_file
 int player_exist(char* buffer, league_players_array_t* players_array, char* team_color, int* playing_ids)
 {
     remove_tailing(buffer);
-    int player_id = atoi(strtok(buffer, ","));
+    char* token = strtok(buffer, ",");
+    if (!token) {
+        print_error(5, buffer,0);
+        return 1;
+    }
+    int player_id = atoi(token);
     for (int i = 0; i < 3; i++)
     {
         if (id_exists(players_array, player_id) != 0)
         {
-            fprintf(stderr, "Hrac s ID '%d' nebyl nalezen v souboru hracu\n", player_id);
+            print_error(3, "",player_id);
             return 1;
         }
         for (int j = 0; j < 6; j++)
         {
             if (playing_ids[j] == player_id)
             {
-                fprintf(stderr, "Hrac s ID '%d' je uveden vicekrat v jednom zapase\n", player_id);
+                print_error(4, "",player_id);
                 return 1;
             }
         }
@@ -97,14 +138,14 @@ int player_exist(char* buffer, league_players_array_t* players_array, char* team
         {
             if (temp_token != NULL)
             {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", buffer);
-            return 1;
+                print_error(5, buffer,0);
+                return 1;
             }
             return 0;
         }
         if (temp_token == NULL)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'id,id,id', nalezeno '%s'\n", buffer);
+            print_error(5, buffer,0);
             return 1;
         }
         player_id = atoi(temp_token);
@@ -119,7 +160,7 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
     {
         if (strcmp(buffer, "match") != 0)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'match', nalezeno '%s'\n", buffer);
+            print_error(2,buffer,0);
             return 1;
         }
     }
@@ -134,7 +175,7 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
             }
                 return 0;
         }
-        else if (strcmp(buffer, "blue") == 0)
+        if (strcmp(buffer, "blue") == 0)
         {
             for (int i = 3; i < 6; i++)
             {
@@ -143,15 +184,12 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
             }
             return 0;
         }
-        else
-        {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'blue' nebo 'red', nalezeno '%s'\n", buffer);
-            return 1;
-        }
+        print_error(10,buffer,0);
+        return 1;
     }
     else
     {
-        fprintf(stderr, "Chyba formatu souboru nalezeno neplatne slovo: '%s'\n", buffer);
+        print_error(9, buffer,0);
         return 1;
     }
 
@@ -168,33 +206,33 @@ int player_KDA(char* buffer, league_players_array_t* league_players, char* team_
     {
         if (one_player_stats == NULL)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            print_error(6, buffer,0);
             return 1;
         }
         char* temp_token = strtok(one_player_stats, ";");
         if (temp_token == NULL)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            print_error(6, buffer,0);
             return 1;
         }
-        int kills = atoi(temp_token);
+        int kills =  atoi(temp_token);
         temp_token = strtok(NULL, ";");
         if (temp_token == NULL)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            print_error(6, buffer,0);
             return 1;
         }
         int assists = atoi(temp_token);
         temp_token = strtok(NULL, ";");
         if (temp_token == NULL)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            print_error(6, buffer,0);
             return 1;
         }
         int deaths = atoi(temp_token);
         if (kills < 0 || assists < 0 || deaths < 0)
         {
-            fprintf(stderr, "Chyba formatu souboru: statistiky hrace nemohou byt zaporne, nalezeno '%s'\n", one_player_stats);
+            print_error(7,buffer,0);
             return 1;
         }
         if (strcmp(team_color, "red") == 0)
@@ -209,20 +247,19 @@ int player_KDA(char* buffer, league_players_array_t* league_players, char* team_
             set_assists(league_players, playing_ids[i+3], get_assists(league_players, playing_ids[i+3]) + assists);
             set_deaths(league_players, playing_ids[i+3], get_deaths(league_players, playing_ids[i+3]) + deaths);
         }
-
         one_player_stats = strtok_r(NULL, ",", &one_player_pointer); // check format
         if (i == 2)
         {
             if (one_player_stats != NULL)
             {
-                fprintf(stderr, "Chyba formatu souboru: ocekavano 'K;A;D,K;A;D,K;A;D', nalezeno '%s'\n", buffer);
+                print_error(6, buffer,0);
                 return 1;
             }
             return 0;
         }
         if (one_player_stats == NULL)
         {
-            fprintf(stderr, "Chyba formatu souboru: ocekavano 'K;A;D,K;A;D,K;A;D', nalezeno '%s'\n", buffer);
+            print_error(6, buffer,0);
             return 1;
         }
     }
@@ -238,55 +275,45 @@ void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file
         {
             end_program(1, buffer, league_players, file_match, file_player_names);
         }
-
         // read second line from match file and check if red team players exist
         fgets(buffer, buffer_size, file_match);
         if (player_exist(buffer, league_players, "red", playing_ids) != 0)
         {
             end_program(1, buffer, league_players, file_match, file_player_names);
         }
-
         // read third line from match file and check red team statistics
         fgets(buffer, buffer_size, file_match);
         if (player_KDA(buffer, league_players, "red", playing_ids) != 0)
         {
             end_program(1, buffer, league_players, file_match, file_player_names);
         }
-
         // read fourth line from match file and check if blue team players exist
         fgets(buffer, buffer_size, file_match);
         if (player_exist(buffer, league_players, "blue", playing_ids) != 0)
         {
             end_program(1, buffer, league_players, file_match, file_player_names);
         }
-
         // read third line from match file and check blue team statistics
         fgets(buffer, buffer_size, file_match);
         if (player_KDA(buffer, league_players, "blue", playing_ids) != 0)
         {
             end_program(1, buffer, league_players, file_match, file_player_names);
         }
-
         // read sixth line from match file and winner team
         fgets(buffer, buffer_size, file_match);
         if (check_word(buffer, league_players, "winner_team", playing_ids) != 0)
         {
             end_program(1, buffer, league_players, file_match, file_player_names);
         }
-
         // reset players after each match
-        for (int i = 0; i < 6; i++)
-        {
-            playing_ids[i] = -1;
-        }
+        for (int i = 0; i < 6; i++) playing_ids[i] = -1;
     }
 
+        // after all matches are processed, write to output file
     if (handle_output_file(league_players, output_file) !=0)
     {
         end_program(1, buffer, league_players, file_match, file_player_names);
     }
-
-
 }
 
 int start_stats(const char* file_match_path, const char* file_player_names_path, char* file_output_path)
@@ -315,7 +342,7 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
     char* buffer = malloc(buffer_size * sizeof(char) +1);
     if (!buffer)
     {
-        fprintf(stderr, "Chyba alokace pameti pro stats_start\n");
+        print_error(1, "stats_start",0);
         return 1;
     }
     league_players_array_t* league_players = init_league_players(file_player_names, MAX_PLAYERS_NUM);
