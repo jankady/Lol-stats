@@ -12,6 +12,7 @@
 void end_program(int end_num, char* buffer, league_players_array_t* league_players, FILE* file_match, FILE* file_player_names)
 {
     free(buffer);
+    buffer = NULL;
     clear_league_players(league_players);
     close_file(file_match);
     close_file(file_player_names);
@@ -142,8 +143,81 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
     return 0;
 }
 
+int player_KDA(char* buffer, league_players_array_t* league_players, char* team_color, int* playing_ids)
+{
+    remove_tailing(buffer);
+    // i need to use strtok because i am doing a nested searching for kills, assists and deaths
+    char* one_player_stats_ptr = NULL;
+    for (int i = 0; i < 3; i++)
+    {
+        char* one_player_stats = strtol(buffer, ",", strlen(buffer));
+
+        if (one_player_stats == NULL)
+        {
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            return 1;
+        }
+        char* temp_token = strtok(one_player_stats, ";");
+        if (temp_token == NULL)
+        {
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            return 1;
+        }
+        int kills = atoi(temp_token);
+        temp_token = strtok(NULL, ";");
+        if (temp_token == NULL)
+        {
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            return 1;
+        }
+        int assists = atoi(temp_token);
+        temp_token = strtok(NULL, ";");
+        if (temp_token == NULL)
+        {
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'kills;assists;deaths' pro kazdeho hrace, nalezeno '%s'\n", buffer);
+            return 1;
+        }
+        int deaths = atoi(temp_token);
+        if (kills < 0 || assists < 0 || deaths < 0)
+        {
+            fprintf(stderr, "Chyba formatu souboru: statistiky hrace nemohou byt zaporne, nalezeno '%s'\n", one_player_stats);
+            return 1;
+        }
+        if (strcmp(team_color, "red") == 0)
+        {
+            set_kills(league_players, playing_ids[i], get_kills(league_players, playing_ids[i]) + kills);
+            set_assists(league_players, playing_ids[i], get_assists(league_players, playing_ids[i]) + assists);
+            set_deaths(league_players, playing_ids[i], get_deaths(league_players, playing_ids[i]) + deaths);
+        }
+        else if (strcmp(team_color, "blue") == 0)
+        {
+            set_kills(league_players, playing_ids[i+3], get_kills(league_players, playing_ids[i+3]) + kills);
+            set_assists(league_players, playing_ids[i+3], get_assists(league_players, playing_ids[i+3]) + assists);
+            set_deaths(league_players, playing_ids[i+3], get_deaths(league_players, playing_ids[i+3]) + deaths);
+        }
+
+        one_player_stats = strtok(NULL, ","); // check format
+        if (i == 2)
+        {
+            if (one_player_stats != NULL)
+            {
+                fprintf(stderr, "Chyba formatu souboru: ocekavano 'K;A;D,K;A;D,K;A;D', nalezeno '%s'\n", buffer);
+                return 1;
+            }
+            return 0;
+        }
+        if (one_player_stats == NULL)
+        {
+            fprintf(stderr, "Chyba formatu souboru: ocekavano 'K;A;D,K;A;D,K;A;D', nalezeno '%s'\n", buffer);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file_player_names, league_players_array_t* league_players, int* playing_ids)
 {
+
     // read first line from match file and check if it is "match"
     fgets(buffer, buffer_size, file_match);
     if (check_word(buffer, league_players, "match", playing_ids) != 0)
@@ -160,7 +234,10 @@ void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file
 
     // read third line from match file and check red team statistics
     fgets(buffer, buffer_size, file_match);
-    // TO DO: implement red team statistics check
+    if (player_KDA(buffer, league_players, "red", playing_ids) != 0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
 
     // read fourth line from match file and check if blue team players exist
     fgets(buffer, buffer_size, file_match);
@@ -171,7 +248,10 @@ void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file
 
     // read third line from match file and check blue team statistics
     fgets(buffer, buffer_size, file_match);
-    // TO DO: implement blue team statistics check
+    if (player_KDA(buffer, league_players, "blue", playing_ids) != 0)
+    {
+        end_program(1, buffer, league_players, file_match, file_player_names);
+    }
 
     // read sixth line from match file and winner team
     fgets(buffer, buffer_size, file_match);
