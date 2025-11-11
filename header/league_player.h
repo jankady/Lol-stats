@@ -24,7 +24,7 @@ typedef struct {
 
 league_players_array_t* init_league_players(FILE* file_player_names, int max_players);
 
-league_player_t* create_league_player(int player_id, const char* player_name);
+league_player_t* create_league_player(int player_id,char* player_name);
 
 void clear_league_players(league_players_array_t* players_array);
 

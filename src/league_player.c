@@ -5,7 +5,7 @@
 #include <string.h>
 #define MAX_BUFFER_SIZE 256
 
-league_player_t* create_league_player(int player_id, const char* player_name)
+league_player_t* create_league_player(int player_id,char* player_name)
 {
     league_player_t* player = malloc(sizeof(league_player_t));
     if (!player)
@@ -14,6 +14,7 @@ league_player_t* create_league_player(int player_id, const char* player_name)
         return NULL;
     }
     player->player_id = player_id;
+    remove_tailing(player_name);
     strncpy(player->player_name, player_name, sizeof(player->player_name) - 1);
     player->player_name[sizeof(player->player_name) - 1] = '\0'; // make sure string is ended with \0
     player->kills = 0;

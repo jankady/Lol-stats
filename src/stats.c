@@ -21,12 +21,6 @@ void end_program(int end_num, char* buffer, league_players_array_t* league_playe
     exit(end_num);
 }
 
-void remove_tailing(char* line)
-{
-    if (!line) return;
-    line[strcspn(line, "\r\n")] = '\0'; // odstrani \n a \r z konce retezce
-}
-
 int handle_output_file(league_players_array_t* league_players, char* output_file)
 {
     int buffer_size = MAX_BUFFER_SIZE * sizeof(char);
