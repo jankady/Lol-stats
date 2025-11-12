@@ -70,7 +70,6 @@ void remove_tailing(char* line)
     line[strcspn(line, "\r\n")] = '\0'; // odstrani \n a \r z konce retezce
 }
 
-
 void print_error(int error_code, const char* message, int number_as_message) {
     switch (error_code){
         case 0: // Generic error

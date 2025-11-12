@@ -9,6 +9,8 @@ add_executable(Lol_stats
     src/stats.c
     src/utility.c
     src/league_player.c
+        src/display_html.c
+        header/display_html.h
 
 )
 

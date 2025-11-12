@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include "../header/stats.h"
+
+#include "display_html.h"
 #include "../header/league_player.h"
 #include "../header/utility.h"
 
@@ -267,11 +269,8 @@ void start_main_loop(char* buffer, int buffer_size, FILE* file_match, FILE* file
         for (int i = 0; i < 6; i++) playing_ids[i] = -1;
     }
 
-        // after all matches are processed, write to output file
-    if (handle_output_file(league_players, output_file) !=0)
-    {
-        end_program(1, buffer, league_players, file_match, file_player_names);
-    }
+    // after all matches are processed, write to output file
+    display_site(output_file, league_players);
 }
 
 int start_stats(const char* file_match_path, const char* file_player_names_path, char* file_output_path)
