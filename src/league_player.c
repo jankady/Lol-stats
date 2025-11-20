@@ -274,16 +274,6 @@ int get_games_played(league_players_array_t* players_array, int player_id)
     return -1;
 }
 
-int calculate_new_elo(int current_elo, int opponent_elo, int win)  // 1 if win 0 if lose
-{
-    int ra = current_elo;
-    int rb = opponent_elo;
-    int ea = 1 / (1 + 10^((rb-ra) /  400));
-    int k = 30;
-    int sa = win == 1 ? 1 : 0;
-    int new_elo = ra + k * (sa - ea);
-    return new_elo;
-}
 
 void set_elo(league_players_array_t* players_array, int player_id, int opponent_elo, int win)
 {
@@ -296,7 +286,7 @@ void set_elo(league_players_array_t* players_array, int player_id, int opponent_
             float ea = 1 / (1 + pow(10, (rb-ra) /  400));
             float k = 30;
             float sa = win == 1 ? 1 : 0;
-            int new_elo = (int) (ra + k * (sa - ea));
+            int new_elo = (int) round(ra + k * (sa - ea));
             fprintf(stdout, "last elo:%d\n", players_array->players[i].elo);
             fprintf(stdout, "new elo:%d\n", new_elo);
             players_array->players[i].elo = new_elo;

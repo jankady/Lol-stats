@@ -8,7 +8,7 @@
 #include "../header/league_player.h"
 #include "../header/utility.h"
 
-#define MAX_PLAYERS_NUM 20
+#define MAX_PLAYERS_NUM 50
 #define MAX_BUFFER_SIZE 256
 
 
