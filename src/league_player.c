@@ -1,4 +1,7 @@
 #include "../header/league_player.h"
+
+#include <math.h>
+
 #include "../header/utility.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -288,12 +291,14 @@ void set_elo(league_players_array_t* players_array, int player_id, int opponent_
     {
         if (players_array->players[i].player_id == player_id)
         {
-            int ra = players_array->players[i].elo;
-            int rb = opponent_elo;
-            int ea = 1 / (1 + 10^((rb-ra) /  400));
-            int k = 30;
-            int sa = win == 1 ? 1 : 0;
-            int new_elo = ra + k * (sa - ea);
+            float ra = (float)players_array->players[i].elo;
+            float rb = (float)opponent_elo;
+            float ea = 1 / (1 + pow(10, (rb-ra) /  400));
+            float k = 30;
+            float sa = win == 1 ? 1 : 0;
+            int new_elo = (int) (ra + k * (sa - ea));
+            fprintf(stdout, "last elo:%d\n", players_array->players[i].elo);
+            fprintf(stdout, "new elo:%d\n", new_elo);
             players_array->players[i].elo = new_elo;
             return;
         }
