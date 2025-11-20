@@ -23,40 +23,6 @@ void end_program(int end_num, char* buffer, league_players_array_t* league_playe
     exit(end_num);
 }
 
-int handle_output_file(league_players_array_t* league_players, char* output_file)
-{
-    int buffer_size = MAX_BUFFER_SIZE * sizeof(char);
-    char* buffer = malloc(buffer_size +1);
-    if (!buffer) {
-        print_error(1, "handle_output_file",0);
-        return 1;
-    }
-    for (int i = 0; i < league_players->count; i++)
-    {
-        int text = snprintf(buffer, buffer_size,
-            "ID: %d, Name: %s, Games Played: %d, Kills: %d, Assists: %d, Deaths: %d,"
-            " Played as Red: %d, Played as Blue: %d, Total Wins: %d, Wins as Red: %d, Wins as Blue: %d\n",
-            league_players->players[i].player_id,
-            league_players->players[i].player_name,
-            league_players->players[i].games_played,
-            league_players->players[i].kills,
-            league_players->players[i].assists,
-            league_players->players[i].deaths,
-            league_players->players[i].played_as_red,
-            league_players->players[i].played_as_blue,
-            league_players->players[i].total_wins,
-            league_players->players[i].wins_as_red,
-            league_players->players[i].wins_as_blue);
-        if (text < 0 || text >= buffer_size) {
-            print_error(11, "",league_players->players[i].player_id);
-            return 1;
-        }
-        write_file(output_file, buffer);
-    }
-    free(buffer);
-    return 0;
-}
-
 int player_exist(char* buffer, league_players_array_t* players_array, char* team_color, int* playing_ids)
 {
     remove_tailing(buffer);
@@ -126,14 +92,28 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
     }
     else if (strcmp(expected_word, "winner_team") == 0)
     {
+        int elo_array[6] = {0};
+
         if (strcmp(buffer, "red") == 0)
         {
             for (int i = 0; i < 3; i++)
             {
                 set_total_wins(league_players,playing_ids[i], get_total_wins(league_players,playing_ids[i]) + 1);
                 set_wins_as_red(league_players,playing_ids[i], get_wins_as_red(league_players ,playing_ids[i]) + 1);
+                elo_array[i] = get_elo(league_players, playing_ids[i]);
             }
-                return 0;
+            int enemy_elo = (elo_array[0] + elo_array[1] + elo_array[2]) / 3;
+            for (int i = 3; i < 6; i++) // set Elo for defeat blue team
+            {
+                elo_array[i] = get_elo(league_players, playing_ids[i]);
+                set_elo(league_players, playing_ids[i], enemy_elo, 0);
+            }
+            enemy_elo = (elo_array[3] + elo_array[4] + elo_array[5]) / 3;
+            for (int i = 0; i < 3; i++) // set Elo for winning red team
+            {
+                set_elo(league_players, playing_ids[i], enemy_elo, 1);
+            }
+            return 0;
         }
         if (strcmp(buffer, "blue") == 0)
         {
@@ -141,10 +121,22 @@ int check_word(char* buffer,league_players_array_t* league_players, const char* 
             {
                 set_total_wins(league_players,playing_ids[i], get_total_wins(league_players,playing_ids[i]) + 1);
                 set_wins_as_blue(league_players,playing_ids[i], get_wins_as_blue(league_players ,playing_ids[i]) + 1);
+                elo_array[i] = get_elo(league_players, playing_ids[i]);
+            }
+            int enemy_elo = (elo_array[3] + elo_array[4] + elo_array[5]) / 3;
+            for (int i = 0; i < 3; i++) // set Elo for defeat red team
+            {
+                elo_array[i] = get_elo(league_players, playing_ids[i]);
+                set_elo(league_players, playing_ids[i], enemy_elo, 0);
+            }
+            enemy_elo = (elo_array[0] + elo_array[1] + elo_array[2]) / 3;
+            for (int i = 3; i < 6; i++) // set Elo for winning blue team
+            {
+                set_elo(league_players, playing_ids[i], enemy_elo, 1);
             }
             return 0;
         }
-        print_error(10,buffer,0);
+        print_error(10, buffer,0);
         return 1;
     }
     else
@@ -312,6 +304,7 @@ int start_stats(const char* file_match_path, const char* file_player_names_path,
     }
     int playing_ids[6] = {-1};
     start_main_loop(buffer, buffer_size, file_match, file_player_names, league_players, playing_ids, file_output_path);
+    printf("Vsechno bylo uspesne");
     end_program(0, buffer, league_players, file_match, file_player_names);
     free(buffer);
     return 0;

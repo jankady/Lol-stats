@@ -13,7 +13,7 @@ typedef struct LeaguePlayer {
     int wins_as_blue; // wins when played as blue
     int wins_as_red; // wins when played as blue
     int games_played; // total games played
-    float elo; // Elo rating
+    int elo; // Elo rating
 } league_player_t;
 
 typedef struct {
@@ -57,5 +57,5 @@ int get_wins_as_red(league_players_array_t* players_array, int player_id);
 void set_games_played(league_players_array_t* players_array, int player_id, int games_played);
 int get_games_played(league_players_array_t* players_array, int player_id);
 
-void set_elo(league_players_array_t* players_array, int player_id, float elo);
+void set_elo(league_players_array_t* players_array, int player_id, int opponent_elo, int win);
 int get_elo(league_players_array_t* players_array, int player_id);

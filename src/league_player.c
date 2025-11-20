@@ -26,7 +26,7 @@ league_player_t* create_league_player(int player_id,char* player_name)
     player->wins_as_blue = 0;
     player->wins_as_red = 0;
     player->games_played = 0;
-    player->elo = 1000.0f; // Initial ELO rating is 1000
+    player->elo = 1000; // Initial ELO rating is 1000
     return player;
 }
 
@@ -267,6 +267,43 @@ int get_games_played(league_players_array_t* players_array, int player_id)
     for (int i = 0; i < players_array->count; i++)
     {
         if (players_array->players[i].player_id == player_id) return players_array->players[i].games_played;
+    }
+    return -1;
+}
+
+int calculate_new_elo(int current_elo, int opponent_elo, int win)  // 1 if win 0 if lose
+{
+    int ra = current_elo;
+    int rb = opponent_elo;
+    int ea = 1 / (1 + 10^((rb-ra) /  400));
+    int k = 30;
+    int sa = win == 1 ? 1 : 0;
+    int new_elo = ra + k * (sa - ea);
+    return new_elo;
+}
+
+void set_elo(league_players_array_t* players_array, int player_id, int opponent_elo, int win)
+{
+    for (int i = 0; i < players_array->count; i++)
+    {
+        if (players_array->players[i].player_id == player_id)
+        {
+            int ra = players_array->players[i].elo;
+            int rb = opponent_elo;
+            int ea = 1 / (1 + 10^((rb-ra) /  400));
+            int k = 30;
+            int sa = win == 1 ? 1 : 0;
+            int new_elo = ra + k * (sa - ea);
+            players_array->players[i].elo = new_elo;
+            return;
+        }
+    }
+}
+int get_elo(league_players_array_t* players_array, int player_id)
+{
+    for (int i = 0; i < players_array->count; i++)
+    {
+        if (players_array->players[i].player_id == player_id) return players_array->players[i].elo;
     }
     return -1;
 }

@@ -25,9 +25,8 @@ void display_chart(char* output_file, league_players_array_t* league_players)
         "</tr>\n");
 
     for (int i = 0; i < league_players->count; i++) {
-
         league_player_t* player = &league_players->players[i];
-        float winrate = ((float) player->total_wins * 100.0f) / (float) player->games_played;
+        float winrate = player->games_played != 0 ? ((float) player->total_wins * 100.0f) / (float) player->games_played: 0.0f;
         float kda_ratio = (float) (player->kills + player->assists) / (float)(player->deaths > 0 ? player->deaths : 1);
 
         char row[MAX_BUFFER_SIZE];
@@ -39,7 +38,7 @@ void display_chart(char* output_file, league_players_array_t* league_players)
             "<td>%.1f%%</td>"
             "<td>%d/%d/%d</td>"
             "<td>%.2f</td>"
-            "<td>%.0f</td>"
+            "<td>%d</td>"
             "</tr>\n",
             player->player_name,
             player->games_played,
@@ -53,6 +52,7 @@ void display_chart(char* output_file, league_players_array_t* league_players)
         );
         write_file(output_file, row);
     }
+    write_file(output_file, "</table>\n");
 }
 
 void display_footer(char* output_file)
