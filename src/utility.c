@@ -57,7 +57,7 @@ int validate_argument(char* argument) {
     FILE *file = read_file(argument);
 
     if (!file) {
-        print_error(20, "",0);
+        print_error(20, argument,0);
         return 1;
     }
     close_file(file);
@@ -73,7 +73,7 @@ void remove_tailing(char* line)
 void print_error(int error_code, const char* message, int number_as_message) {
     switch (error_code){
         case 0: // Generic error
-            printf("spatny pocet argumentu");
+            printf("spatny pocet argumentu ocekavano: <soubor se zapasy> <soubor se jmeny hracu> <vystupni soubor>\n");
             break;
         case 1: // Error for memory allocation
             fprintf(stderr, "Chyba alokace pameti pro %s\n", message);
@@ -106,7 +106,7 @@ void print_error(int error_code, const char* message, int number_as_message) {
             fprintf(stderr,"Chyba fomatovani pro hrace s id: '%d'\n", number_as_message);
             break;
         case 20:
-            fprintf(stderr, "Spatny argument\n");
+            fprintf(stderr, "Spatny argument nalezeno: %s\n",message);
             break;
         case 21:
             fprintf(stderr,"Doslo k chybe pri zapisu do souboru: %s\n", message);
