@@ -30,7 +30,7 @@ Jednoduchý nástroj pro zobrazování statistik z League of Legends.
 
 Tento projekt slouží k načtení statistik z textových souborů a následně vygenerování HTML stránky s těmito statistikami.
 * **Data:** Ve složce test-data, jsou příklady testovacích dat.
-* **Funkce:** Program potřebuji 3 parametry:
+* **Funkce:** Program potřebuje 3 parametry:
   1. Cesta k souboru odehraných zápasů zápasu (test-data/matches.in)
   2. Cesta k souboru s ID a jménem hráčů (test-data/player_names.in)
   3. Cesta kde bude vytvořena stránka ze statiskami (test-data/result.html)

@@ -5,12 +5,8 @@
 
 #define MAX_BUFFER_SIZE 256
 
-void display_header(char* output_file)
-{
 
-}
-
-void display_chart(char* output_file, league_players_array_t* league_players)
+void display_chart(const char* output_file, const league_players_array_t* league_players)
 {
     write_file(output_file, "<h1>League of Legends Player Statistics</h1>\n");
     write_file(output_file, "<h2>Player Overview</h2>\n");
